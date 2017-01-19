@@ -162,3 +162,26 @@ from pwn import *
 libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
+
+## Find '/bin/sh' or 'sh' in library
+
+* Need libc base first
+
+### Manually
+
+* `objdump -s libc.so | less` then search 'sh'
+
+### Automatically
+
+* Use [pwntools](https://github.com/Gallopsled/pwntools)
+
+Ex:
+
+```python
+from pwn import *
+
+libc = ELF('libc.so')
+...
+sh = base + next(libc.search('sh\x00'))
+binsh = base + next(libc.search('/bin/sh\x00'))
+```
