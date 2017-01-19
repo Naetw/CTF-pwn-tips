@@ -128,3 +128,7 @@ Found 2 results, display max 2 items:
    libc : 0x7ffff7dd33b8 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
 [stack] : 0x7fffffffde28 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
 ```
+
+## Binary Service with specific library
+
+* `ncat -vc 'LD_PRELOAD=./libc.so ./binary -kl 4000'
