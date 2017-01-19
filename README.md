@@ -4,7 +4,7 @@
 
 Assume that: `char buf[41]` and `int size`
 
-#### scanf
+### scanf
 
 * scanf("%s", buf)
     * `%s` doesn't have boundary check.
@@ -28,7 +28,7 @@ Assume that: `char buf[41]` and `int size`
     * Then, it will have overlapped stack frame. 
     * Ex: [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
 
-#### gets
+### gets
 
 * gets(buf)
     * No boundary check.
@@ -38,7 +38,7 @@ Assume that: `char buf[41]` and `int size`
     * It will take only 40 bytes from input, and put NULL at the the end of input.
     * **useless**
 
-#### read
+### read
 
 * read(stdin, buf, 41)
     * It will take 41 bytes from input, and it won't put NULL at the end of input.
@@ -61,7 +61,7 @@ Example:
     * Almost the same as `read`.
     * **leakable**
 
-#### strcpy
+### strcpy
 
 Assume there is another buffer : `char buf2[60]`
 
@@ -76,7 +76,7 @@ Assume there is another buffer : `char buf2[60]`
     * Since there is no NULL to terminate, it may have **information leak**.
     * **leakable**
 
-#### strcat
+### strcat
 
 Assume there is another buffer : `char buf2[60]`
 
@@ -89,3 +89,42 @@ Assume there is another buffer : `char buf2[60]`
     * Almost the same as `strcat`.
     * **pwnable**
     * Ex: [Seccon CTF quals 2016 jmper](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/jmper-300)
+
+
+## Find string in gdb
+
+In problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out where is the offset of `argv[0]` with input buffer.
+
+### Normal gdb
+
+* Use `p/x ((char **)environ)` in gdb, and the address of argv[0] will be the output - 0x10
+
+Ex:
+
+```
+(gdb) p/x (char **)environ
+$9 = 0x7fffffffde38
+(gdb) x/gx 0x7fffffffde38-0x10
+0x7fffffffde28: 0x00007fffffffe1cd
+(gdb) x/s 0x00007fffffffe1cd
+0x7fffffffe1cd: "/home/naetw/CTF/seccon2016/check/checker"
+```
+
+### [gdb peda](https://github.com/longld/peda)
+
+* Use `searchmem "/home/naetw/CTF/seccon2016/check/checker"`
+* Then use `searchmeme $result_address`
+
+```
+gdb-peda$ searchmem "/home/naetw/CTF/seccon2016/check/checker"
+Searching for '/home/naetw/CTF/seccon2016/check/checker' in: None ranges
+Found 3 results, display max 3 items:
+[stack] : 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
+[stack] : 0x7fffffffed7c ("/home/naetw/CTF/seccon2016/check/checker")
+[stack] : 0x7fffffffefcf ("/home/naetw/CTF/seccon2016/check/checker")
+gdb-peda$ searchmem 0x7fffffffe1cd
+Searching for '0x7fffffffe1cd' in: None ranges
+Found 2 results, display max 2 items:
+   libc : 0x7ffff7dd33b8 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
+[stack] : 0x7fffffffde28 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
+```
