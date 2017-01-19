@@ -3,12 +3,12 @@ CTF-pwn-tips
 
 
 # Catalog
-* [Overflow](##Overflow)
-* [Find string in gdb](##Find string in gdb)
-* [Binary Service with specific library](##Binary Service with specific library)
-* [Find specific function offset in libc](##Find specific function offset in libc)
-* [Find '/bin/sh' or 'sh' in library](##Find '/bin/sh' or 'sh' in library)
-* [Leak stack address](##Leak stack address)
+* [Overflow](#overflow)
+* [Find string in gdb](#find-string-in-gdb)
+* [Binary Service with specific library](#binary-service-with-specific-library)
+* [Find specific function offset in libc](#find-specific-function-offset-in-libc)
+* [Find '/bin/sh' or 'sh' in library](#find-binsh-or-sh-in-library)
+* [Leak stack address](#leak-stack-address)
 
 
 ## Overflow
