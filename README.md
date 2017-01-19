@@ -131,7 +131,7 @@ Found 2 results, display max 2 items:
 
 ## Binary Service with specific library
 
-* `ncat -vc 'LD_PRELOAD=./libc.so ./binary -kl 4000'
+* `ncat -vc 'LD_PRELOAD=./libc.so ./binary -kl 4000'`
 
 ## Find specific function offset in libc
 
