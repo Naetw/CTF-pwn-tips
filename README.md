@@ -132,3 +132,33 @@ Found 2 results, display max 2 items:
 ## Binary Service with specific library
 
 * `ncat -vc 'LD_PRELOAD=./libc.so ./binary -kl 4000'
+
+## Find specific function offset in libc
+
+If we leaked libc address of certain function successfully, we could use it minus offset of that function, then we can get libc base address of this time.
+
+### Manually
+
+* `readelf -s $libc | grep $function@`
+
+Ex:
+
+```
+$ readelf -s libc-2.19.so | grep system@
+    620: 00040310    56 FUNC    GLOBAL DEFAULT   12 __libc_system@@GLIBC_PRIVATE
+   1443: 00040310    56 FUNC    WEAK   DEFAULT   12 system@@GLIBC_2.0
+```
+
+### Automatically
+
+* Use [pwntools](https://github.com/Gallopsled/pwntools)
+* Then you can use it in your exploit.
+
+Ex:
+
+```python
+from pwn import *
+
+libc = ELF('libc.so')
+system_off = libc.symbols['system']
+```
