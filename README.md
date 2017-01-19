@@ -185,3 +185,12 @@ libc = ELF('libc.so')
 sh = base + next(libc.search('sh\x00'))
 binsh = base + next(libc.search('/bin/sh\x00'))
 ```
+
+## Leak stack address
+
+**previous condition**
+
+* libc base
+* We can output the content of arbitrary address
+
+There is a symbol `environ` in libc, and it will have stack address.
