@@ -144,8 +144,8 @@ Found 2 results, display max 2 items:
 
 Two ways:
 
-* `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' -kl 4000`
-* `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' -kl 4000`
+* `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' 127.0.0.1 -kl 4000`
+* `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' 127.0.0.1 -kl 4000`
 
 ## Find specific function offset in libc
 
@@ -207,4 +207,4 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 * libc base
 * We can output the content of arbitrary address
 
-There is a symbol `environ` in libc, and it will have stack address.
+There is a symbol `environ` in libc, and it owns stack address.
