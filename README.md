@@ -9,6 +9,7 @@ CTF-pwn-tips
 * [Find specific function offset in libc](#find-specific-function-offset-in-libc)
 * [Find '/bin/sh' or 'sh' in library](#find-binsh-or-sh-in-library)
 * [Leak stack address](#leak-stack-address)
+* [Fork problem in gdb](#fork-problem-in-gdb)
 
 
 ## Overflow
@@ -124,7 +125,7 @@ $9 = 0x7fffffffde38
 ### [gdb peda](https://github.com/longld/peda)
 
 * Use `searchmem "/home/naetw/CTF/seccon2016/check/checker"`
-* Then use `searchmeme $result_address`
+* Then use `searchmem $result_address`
 
 ```
 gdb-peda$ searchmem "/home/naetw/CTF/seccon2016/check/checker"
@@ -208,3 +209,12 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 * We can output the content of arbitrary address
 
 There is a symbol `environ` in libc, and it owns stack address.
+
+## Fork problem in gdb
+
+When you use **gdb** debug a binary with `fork()` function, you can use following command to determine which process to follow:
+
+* `set follow-fork-mode parent`
+* `set follow-fork-mode child`
+
+**default will be child**
