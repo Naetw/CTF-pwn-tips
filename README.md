@@ -10,6 +10,7 @@ CTF-pwn-tips
 * [Find '/bin/sh' or 'sh' in library](#find-binsh-or-sh-in-library)
 * [Leak stack address](#leak-stack-address)
 * [Fork problem in gdb](#fork-problem-in-gdb)
+* [Secret of a mysterious section - .tls](#secret-of-a-mysterious-section---tls)
 
 
 ## Overflow
@@ -218,3 +219,40 @@ When you use **gdb** debug a binary with `fork()` function, you can use followin
 * `set follow-fork-mode child`
 
 **default will be child**
+
+## Secret of a mysterious section - .tls
+
+If you want to use it, there are several preconditions:
+
+* `malloc` function and you can use it with arbitrary size
+* Arbitrary address leaking
+
+We use `malloc` call `mmap` to allocate memory(size 0x21000 is enough). In general, there pages will be placed at the address just before `.tls` section.
+
+There are some useful information on **`.tls`**, such as the address of `main_arena`, `canary` value of stack guard, and a strange `stack address` which points to somewhere on stack but with fixed offset.
+
+**Before call mmap:**
+
+```
+7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
+7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
+7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
+7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+7fecc0068000-7fecc006a000 rw-p 00000000 00:00 0              <- .tls section
+7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
+7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+```
+
+**After call mmap:**
+
+```
+7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
+7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
+7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
+7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0              <- memory of mmap + .tls section
+7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
+7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+```
