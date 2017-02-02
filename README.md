@@ -5,7 +5,7 @@ CTF-pwn-tips
 # Catalog
 * [Overflow](#overflow)
 * [Find string in gdb](#find-string-in-gdb)
-* [Binary Service with specific library](#binary-service-with-specific-library)
+* [Binary Service](#binary-service)
 * [Find specific function offset in libc](#find-specific-function-offset-in-libc)
 * [Find '/bin/sh' or 'sh' in library](#find-binsh-or-sh-in-library)
 * [Leak stack address](#leak-stack-address)
@@ -142,12 +142,18 @@ Found 2 results, display max 2 items:
 [stack] : 0x7fffffffde28 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
 ```
 
-## Binary Service with specific library
+## Binary Service
 
-Two ways:
+Normal:
 
-* `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' 127.0.0.1 -kl 4000`
-* `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' 127.0.0.1 -kl 4000`
+* `ncat -vc ./binary -kl 127.0.0.1 $port`
+
+With specific library in two ways:
+
+* `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' -kl 127.0.0.1 $port`
+* `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' -kl 127.0.0.1 $port`
+
+After this, you can connect to binary service by command `nc localhost 4000`(I use port number 4000 here.)
 
 ## Find specific function offset in libc
 
@@ -204,10 +210,10 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 ## Leak stack address
 
-**previous condition**
+**preconditions**
 
-* libc base
-* We can output the content of arbitrary address
+* Already leak libc base
+* We can leak the content of arbitrary address
 
 There is a symbol `environ` in libc, and it owns stack address.
 
@@ -218,7 +224,7 @@ When you use **gdb** debug a binary with `fork()` function, you can use followin
 * `set follow-fork-mode parent`
 * `set follow-fork-mode child`
 
-**default will be child**
+**Default will be child**
 
 ## Secret of a mysterious section - .tls
 
