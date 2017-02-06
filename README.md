@@ -68,7 +68,7 @@ Example:
 ```
 
 * If there is a `printf` or `puts` that used to output the buf, it will output until NULL byte.
-* In this case, we can get `'A'*41 + '\x46\x55\x55\x55\x55'`
+* In this case, we can get `'A'*41 + '\x46\x55\x55\x55\x55'` instead of just our input `'A'*41`
 
 * fread(stdin, buf, 1, 41)
     * Almost the same as `read`.
@@ -161,7 +161,7 @@ If we leaked libc address of certain function successfully, we could use it minu
 
 ### Manually
 
-* `readelf -s $libc | grep $function@`
+* `readelf -s $libc | grep ${function}@`
 
 Ex:
 
