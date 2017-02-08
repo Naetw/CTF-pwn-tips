@@ -11,6 +11,7 @@ CTF-pwn-tips
 * [Leak stack address](#leak-stack-address)
 * [Fork problem in gdb](#fork-problem-in-gdb)
 * [Secret of a mysterious section - .tls](#secret-of-a-mysterious-section---tls)
+* [Make stack executable](#make-stack-executable)
 
 
 ## Overflow
@@ -262,3 +263,9 @@ There are some useful information on **`.tls`**, such as the address of `main_ar
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 ```
+
+## Make stack executable
+
+* [link1](http://radare.today/posts/defeating-baby_rop-with-radare2/)
+* [link2](https://sploitfun.wordpress.com/author/sploitfun/)
+* Haven't read yet orz
