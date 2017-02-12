@@ -58,8 +58,6 @@ payload = FmtStrExp.generate32(fmt, 7)
 
 **Before trying this one, make sure you have flag in the /home/craxme**
 
-[Exploit](https://github.com/Naetw/CTF-pwn-tips/blob/master/formatstring/sample/excat.py)
-
 
 #### Second - get shell
 
@@ -81,5 +79,3 @@ system_got_fmt = FmtStrExp(0, system_got, main)
 total_fmt = [(magic_fmt, 1), (printf_got_fmt, 4), (system_got_fmt, 4)]
 payload = FmtStrExp.generate32(total_fmt, 7)
 ```
-
-[Exploit](https://github.com/Naetw/CTF-pwn-tips/blob/master/formatstring/sample/exsh.py)
