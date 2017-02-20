@@ -11,6 +11,7 @@ CTF-pwn-tips
 * [Leak stack address](#leak-stack-address)
 * [Fork problem in gdb](#fork-problem-in-gdb)
 * [Secret of a mysterious section - .tls](#secret-of-a-mysterious-section---tls)
+* [Predictable RNG(Random Number Generator)](#predictable-rngrandom-number-generator)
 * [Make stack executable](#make-stack-executable)
 
 
@@ -262,6 +263,36 @@ There are some useful information on **`.tls`**, such as the address of `main_ar
 7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
+```
+
+## Predictable RNG(Random Number Generator)
+
+When the binary uses the RNG to make the address of important information or sth, we can guess the same value if it's predictable.
+
+Assuming that it's predictable, we can use [ctypes](https://docs.python.org/2/library/ctypes.html) which is a build-in module in Python.
+
+**ctypes** allows calling function in DLL(Dynamic-Link Library) or Shared Library.
+
+Therefore if binary has an init_proc like this:
+
+```c
+srand(time(NULL));
+while(addr <= 0x10000){
+    addr = rand() & 0xfffff000;
+}	
+secret = mmap(addr,0x1000,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS ,-1,0);
+if(secret == -1){
+    puts("mmap error");
+    exit(0);
+}
+```
+
+Then we can use **ctypes** to get the same value of addr.
+
+```python
+LIBC = ctypes.cdll.LoadLibrary('/path/to/dll')
+LIBC.srand(LIBC.time(0))
+addr = LIBC.rand() & 0xfffff000
 ```
 
 ## Make stack executable
