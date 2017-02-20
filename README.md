@@ -273,7 +273,7 @@ Assuming that it's predictable, we can use [ctypes](https://docs.python.org/2/li
 
 **ctypes** allows calling function in DLL(Dynamic-Link Library) or Shared Library.
 
-Therefore if binary has an init_proc like this:
+Therefore, if binary has an init_proc like this:
 
 ```c
 srand(time(NULL));
@@ -290,6 +290,7 @@ if(secret == -1){
 Then we can use **ctypes** to get the same value of addr.
 
 ```python
+import ctypes
 LIBC = ctypes.cdll.LoadLibrary('/path/to/dll')
 LIBC.srand(LIBC.time(0))
 addr = LIBC.rand() & 0xfffff000
