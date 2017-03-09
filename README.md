@@ -217,7 +217,30 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 * Already leak libc base
 * We can leak the content of arbitrary address
 
-There is a symbol `environ` in libc, and it owns stack address.
+There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp` .  
+The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
+
+```
+(gdb) list 1
+1       #include <stdlib.h>
+2       #include <stdio.h>
+3
+4       extern char **environ;
+5
+6       int main(int argc, char **argv, char **envp)
+7       {
+8           return 0;
+9       }
+(gdb) x/gx 0x7ffff7a0e000 + 0x3c5f38
+0x7ffff7dd3f38 <environ>:       0x00007fffffffe230
+(gdb) p/x (char **)envp
+$12 = 0x7fffffffe230
+```
+
+* `0x7ffff7a0e000` is current libc base address
+* `0x3c5f38` is offset of `environ` in libc
+
+This [manual](https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html) explains details about `environ` .
 
 ## Fork problem in gdb
 
