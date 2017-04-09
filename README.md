@@ -194,6 +194,7 @@ Need libc base first
 ### Manually
 
 * `objdump -s libc.so | less` then search 'sh'
+* `strings -tx libc.so | grep /bin/sh`
 
 ### Automatically
 
