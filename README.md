@@ -13,6 +13,7 @@ CTF-pwn-tips
 * [Secret of a mysterious section - .tls](#secret-of-a-mysterious-section---tls)
 * [Predictable RNG(Random Number Generator)](#predictable-rngrandom-number-generator)
 * [Make stack executable](#make-stack-executable)
+* [Hijack hook function](#hijack-hook-function)
 
 
 ## Overflow
@@ -69,7 +70,7 @@ Example:
 0x7fffffffdd20: 0x4141414141414141      0x0000555555554641
 ```
 
-* If there is a `printf` or `puts` that used to output the buf, it will output until NULL byte.
+* If there is a `printf` or `puts` which is used to output the buf, it will output until NULL byte.
 * In this case, we can get `'A'*41 + '\x46\x55\x55\x55\x55'` instead of just our input `'A'*41`
 
 * fread(stdin, buf, 1, 41)
@@ -108,7 +109,7 @@ Assume there is another buffer : `char buf2[60]`
 
 ## Find string in gdb
 
-In problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out where is the offset of `argv[0]` with input buffer.
+In problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and input buffer.
 
 ### Normal gdb
 
@@ -325,3 +326,7 @@ addr = LIBC.rand() & 0xfffff000
 * [link1](http://radare.today/posts/defeating-baby_rop-with-radare2/)
 * [link2](https://sploitfun.wordpress.com/author/sploitfun/)
 * Haven't read yet orz
+
+## Hijack hook function
+
+* TODO
