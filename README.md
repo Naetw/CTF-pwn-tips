@@ -13,6 +13,7 @@ CTF-pwn-tips
 * [Secret of a mysterious section - .tls](#secret-of-a-mysterious-section---tls)
 * [Predictable RNG(Random Number Generator)](#predictable-rngrandom-number-generator)
 * [Make stack executable](#make-stack-executable)
+* [Use one-gadget-RCE instead of system](#use-one-gadget-rce-instead-of-system)
 * [Hijack hook function](#hijack-hook-function)
 
 
@@ -38,7 +39,7 @@ Assume that: `char buf[41]` and `int size`
     * **pwnable**
 
 * `scanf("%d", size)`
-    * **preconditions:**
+    * **constraints:**
         * Used with `alloca(size)`
         * There is a function call after calling `alloca`
     * Since `alloca` allocates memory from the stack frame of caller, there is an instruction `sub esp, eax` to achieve that.
@@ -322,6 +323,28 @@ addr = LIBC.rand() & 0xfffff000
 * [link1](http://radare.today/posts/defeating-baby_rop-with-radare2/)
 * [link2](https://sploitfun.wordpress.com/author/sploitfun/)
 * Haven't read yet orz
+
+## Use one-gadget-RCE instead of system
+
+* Have libc base address
+* Write to arbitrary address
+
+Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijacking some function to `system`. What if we **can't** manipulate the parameter? 
+
+Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
+
+With **one-gadget-RCE**, we can just hijack `.got.plt` to make program jump to **one-gadget**, but there are some constraints needed to be satisfied before use it.
+
+There are lots of **one-gadgets** in libc. Each one needs different constraints but those are similar. Each constraint is about registers' state.
+
+Ex:
+
+* ebx is the address of `rw-p` area of libc
+* [esp+0x34] == NULL
+
+How can we get these constraints? Here is an useful tool [one_gadget](https://github.com/david942j/one_gadget) !!!!
+
+Therefore, if we can satisfy those constraints, we can get the shell more easily.
 
 ## Hijack hook function
 
