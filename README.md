@@ -58,8 +58,10 @@ Assume that: `char buf[41]` and `int size`
 
 ### read
 
-* `read(stdin, buf, 41)`
-    * It will take **41 bytes from** input, and it won't put NULL at the end of input.
+Here we let buf to be size of 40
+
+* `read(stdin, buf, 40)`
+    * It will take **40 bytes from** input, and it won't put NULL at the end of input.
     * It seems safe, but it may have **information leak**.
     * **leakable**
 
@@ -69,13 +71,13 @@ Example:
 ```
 0x7fffffffdd00: 0x4141414141414141      0x4141414141414141
 0x7fffffffdd10: 0x4141414141414141      0x4141414141414141
-0x7fffffffdd20: 0x4141414141414141      0x0000555555554641
+0x7fffffffdd20: 0x4141414141414141      0x00007fffffffe1cd
 ```
 
 * If there is a `printf` or `puts` which is used to output the buf, it will output until reaching NULL byte.
-* In this case, we can get `'A'*41 + '\x46\x55\x55\x55\x55'` instead of just our input `'A'*41`
+* In this case, we can get `'A'*40 + '\xcd\xe1\xff\xff\xff\x7f'` instead of just our input `'A'*40`
 
-* `fread(stdin, buf, 1, 41)`
+* `fread(stdin, buf, 1, 40)`
     * Almost the same as `read`.
     * **leakable**
 
