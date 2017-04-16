@@ -348,4 +348,36 @@ Therefore, if we can satisfy those constraints, we can get the shell more easily
 
 ## Hijack hook function
 
-* TODO
+* Have libc base address
+* Write to arbitrary address
+* The program uses `malloc`, `free` or `realloc`.
+
+By manual:
+
+> The GNU C Library lets you modify the behavior of `malloc`, `realloc`, and `free` by specifying appropriate hook functions. You can use these hooks to help you debug programs that use dynamic memory allocation, for example.
+
+There are hook variables declared in malloc.h, and their default value would be `0x0`.
+
+* `__malloc_hook`
+* `__free_hook`
+* ...
+
+Since they are used to help us debug programs, they are writable during the execution.
+
+```
+0xf77228e0 <__free_hook>:       0x00000000
+0xf7722000 0xf7727000 rw-p      mapped
+```
+
+Let's look into the [src](https://code.woboq.org/userspace/glibc/malloc/malloc.c.html#2917) of malloc.c. I will use `__libc_free` to demo.
+
+```c
+void (*hook) (void *, const void *) = atomic_forced_read (__free_hook);
+if (__builtin_expect (hook != NULL, 0))
+{
+    (*hook)(mem, RETURN_ADDRESS (0));
+    return;
+}
+```
+
+It will check the value of `__free_hook`. If it's not NULL, it would call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function call is in the libc, the constraint of **one-gadget** is usually satisfied.
