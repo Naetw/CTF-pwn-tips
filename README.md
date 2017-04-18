@@ -19,7 +19,7 @@ CTF-pwn-tips
 
 ## Overflow
 
-Assume that: `char buf[41]` and `int size`
+Assume that: `char buf[40]` and `int size`
 
 ### scanf
 
@@ -27,14 +27,14 @@ Assume that: `char buf[41]` and `int size`
     * `%s` doesn't have boundary check.
     * **pwnable**
 
-* `scanf("%40s", buf)`
-    * `%40s`  will only take 40 bytes from input.
+* `scanf("%39s", buf)`
+    * `%39s`  will only take 39 bytes from input.
     * And it will puts NULL at the end of input.
     * **useless**
 
-* `scanf("%41s", buf)`
+* `scanf("%40s", buf)`
     * At the first sight, it seems reasonable.(seems)
-    * It will take **41 bytes** from input, but it also **puts NULL at the end of input.**
+    * It will take **40 bytes** from input, but it also **puts NULL at the end of input.**
     * Therefore, it will have **one-byte-overflow**.
     * **pwnable**
 
@@ -43,7 +43,7 @@ Assume that: `char buf[41]` and `int size`
         * Used with `alloca(size)`
         * There is a function call after calling `alloca`
     * Since `alloca` allocates memory from the stack frame of caller, there is an instruction `sub esp, eax` to achieve that.
-    * If we make size negative, it will have overlapped stack frame. 
+    * If we make size negative, it will have overlapped stack frame.
     * Ex: [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
 
 ### gets
@@ -52,13 +52,11 @@ Assume that: `char buf[41]` and `int size`
     * No boundary check.
     * **pwnable**
 
-* `fgets(buf, 41, stdin)`
-    * It will take only **40 bytes** from input, and put NULL at the the end of input.
+* `fgets(buf, 40, stdin)`
+    * It will take only **39 bytes** from input, and put NULL at the the end of input.
     * **useless**
 
 ### read
-
-Here we let buf to be size of 40
 
 * `read(stdin, buf, 40)`
     * It will take **40 bytes from** input, and it won't put NULL at the end of input.
@@ -91,8 +89,8 @@ Assume there is another buffer : `char buf2[60]`
     * Therefore, it may happen overflow.
     * **pwnable**
 
-* `strncpy(buf, buf2, 41)`
-    * It will copy 41 bytes from buf2 to buf, but it won't put NULL at the end.  
+* `strncpy(buf, buf2, 40)`
+    * It will copy 40 bytes from buf2 to buf, but it won't put NULL at the end.
     * Since there is no NULL byte to terminate, it may have **information leak**.
     * **leakable**
 
@@ -222,7 +220,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 * Already leak libc base address
 * Can leak the content of arbitrary address
 
-There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp` .  
+There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp` .
 The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
 
 ```
@@ -303,7 +301,7 @@ Therefore, if binary has an init_proc like this:
 srand(time(NULL));
 while(addr <= 0x10000){
     addr = rand() & 0xfffff000;
-}	
+}
 secret = mmap(addr,0x1000,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS ,-1,0);
 if(secret == -1){
     puts("mmap error");
@@ -331,7 +329,7 @@ addr = LIBC.rand() & 0xfffff000
 * Have libc base address
 * Write to arbitrary address
 
-Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijacking some function to `system`. What if we **can't** manipulate the parameter? 
+Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijacking some function to `system`. What if we **can't** manipulate the parameter?
 
 Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
 
