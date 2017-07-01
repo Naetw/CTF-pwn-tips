@@ -217,7 +217,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 ## Leak stack address
 
-* Already leak libc base address
+* Already have leaked libc base address
 * Can leak the content of arbitrary address
 
 There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp` .
