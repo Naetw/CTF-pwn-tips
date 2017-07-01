@@ -15,6 +15,7 @@ CTF-pwn-tips
 * [Make stack executable](#make-stack-executable)
 * [Use one-gadget-RCE instead of system](#use-one-gadget-rce-instead-of-system)
 * [Hijack hook function](#hijack-hook-function)
+* [Use printf to trigger malloc and free](#use-printf-to-trigger-malloc-and-free)
 
 
 ## Overflow
@@ -381,3 +382,75 @@ if (__builtin_expect (hook != NULL, 0))
 ```
 
 It will check the value of `__free_hook`. If it's not NULL, it would call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function call is in the libc, the constraint of **one-gadget** is usually satisfied.
+
+## Use printf to trigger malloc and free
+
+Look into the source of printf, there are several places which may trigger malloc. Take [vfprintf.c line 1470](https://code.woboq.org/userspace/glibc/stdio-common/vfprintf.c.html#1470) for example:
+
+```c
+#define EXTSIZ 32
+enum { WORK_BUFFER_SIZE = 1000 };
+
+if (width >= WORK_BUFFER_SIZE - EXTSIZ)
+{
+    /* We have to use a special buffer.  */
+    size_t needed = ((size_t) width + EXTSIZ) * sizeof (CHAR_T);
+    if (__libc_use_alloca (needed))
+        workend = (CHAR_T *) alloca (needed) + width + EXTSIZ;
+    else
+    {
+        workstart = (CHAR_T *) malloc (needed);
+        if (workstart == NULL)
+        {
+            done = -1;
+            goto all_done;
+        }
+        workend = workstart + width + EXTSIZ;
+    }
+}
+```
+
+We can find that `malloc` will be triggered if the width field is large enough.(Of course, `free` will also be triggered at the end of printf if `malloc` has been triggered.) However, WORK_BUFFER_SIZE is not large enough, since we need to go to **else** block. Let's take a look at `__libc_use_alloca` and see what exactly the minimum size of width we should give.
+
+```c
+
+/* Minimum size for a thread.  We are free to choose a reasonable value.  */
+#define PTHREAD_STACK_MIN        16384
+
+#define __MAX_ALLOCA_CUTOFF        65536
+
+int __libc_use_alloca (size_t size)
+{
+    return (__builtin_expect (size <= PTHREAD_STACK_MIN / 4, 1)
+        || __builtin_expect (__libc_alloca_cutoff (size), 1));
+}
+
+int __libc_alloca_cutoff (size_t size)
+{
+	return size <= (MIN (__MAX_ALLOCA_CUTOFF,
+					THREAD_GETMEM (THREAD_SELF, stackblock_size) / 4
+					/* The main thread, before the thread library is
+						initialized, has zero in the stackblock_size
+						element.  Since it is the main thread we can
+						assume the maximum available stack space.  */
+					?: __MAX_ALLOCA_CUTOFF * 4));
+}
+```
+
+We have to make sure that:
+
+1. `size > PTHREAD_STACK_MIN / 4`
+2. `size > MIN(__MAX_ALLOCA_CUTOFF, THREAD_GETMEM(THREAD_SELF, stackblock_size) / 4 ?: __MAX_ALLOCA_CUTOFF * 4)`
+    * I did not fully understand what exactly the function - THREAD_GETMEM do, but it seems that it mostly returns 0.
+    * Therefore, the second condition is usually `size > 65536`
+
+More details:
+
+* [__builtin_expect](https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html)
+* [THREAD_GETMEM](https://code.woboq.org/userspace/glibc/sysdeps/x86_64/nptl/tls.h.html#_M/THREAD_GETMEM)
+
+
+### conclusion
+
+* The minimum size of width to trigger `malloc` & `free` is 65537 most of the time.
+* If there is a Format String Vulnerability, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and trigger `malloc` & `free` then we can get the shell easily.
