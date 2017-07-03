@@ -29,14 +29,13 @@ Assume that: `char buf[40]` and `int size`
     * **pwnable**
 
 * `scanf("%39s", buf)`
-    * `%39s`  will only take 39 bytes from input.
-    * And it will puts NULL at the end of input.
+    * `%39s` only takes 39 bytes from input and puts NULL byte at the end of input.
     * **useless**
 
 * `scanf("%40s", buf)`
     * At the first sight, it seems reasonable.(seems)
-    * It will take **40 bytes** from input, but it also **puts NULL at the end of input.**
-    * Therefore, it will have **one-byte-overflow**.
+    * It takes **40 bytes** from input, but it also **puts NULL byte at the end of input.**
+    * Therefore, it has **one-byte-overflow**.
     * **pwnable**
 
 * `scanf("%d", size)`
@@ -54,13 +53,13 @@ Assume that: `char buf[40]` and `int size`
     * **pwnable**
 
 * `fgets(buf, 40, stdin)`
-    * It will take only **39 bytes** from input, and put NULL at the the end of input.
+    * It takes only **39 bytes** from input, and puts NULL byte at the end of input.
     * **useless**
 
 ### read
 
 * `read(stdin, buf, 40)`
-    * It will take **40 bytes from** input, and it won't put NULL at the end of input.
+    * It takes **40 bytes** from input, and it doesn't put NULL byte at the end of input.
     * It seems safe, but it may have **information leak**.
     * **leakable**
 
@@ -73,8 +72,8 @@ Example:
 0x7fffffffdd20: 0x4141414141414141      0x00007fffffffe1cd
 ```
 
-* If there is a `printf` or `puts` which is used to output the buf, it will output until reaching NULL byte.
-* In this case, we can get `'A'*40 + '\xcd\xe1\xff\xff\xff\x7f'` instead of just our input `'A'*40`
+* If there is a `printf` or `puts` used to output the buf, it will keep outputting until reaching NULL byte.
+* In this case, we can get `'A'*40 + '\xcd\xe1\xff\xff\xff\x7f'`.
 
 * `fread(stdin, buf, 1, 40)`
     * Almost the same as `read`.
@@ -82,27 +81,27 @@ Example:
 
 ### strcpy
 
-Assume there is another buffer : `char buf2[60]`
+Assume that there is another buffer : `char buf2[60]`
 
 * `strcpy(buf, buf2)`
     * No boundary check.
-    * It will copy the content of buf2(until reaching NULL byte) which may be longer than `length(buf)` to buf.
+    * It copies the content of buf2(until reaching NULL byte) which may be longer than `length(buf)` to buf.
     * Therefore, it may happen overflow.
     * **pwnable**
 
 * `strncpy(buf, buf2, 40)`
-    * It will copy 40 bytes from buf2 to buf, but it won't put NULL at the end.
+    * It copies 40 bytes from buf2 to buf, but it won't put NULL byte at the end.
     * Since there is no NULL byte to terminate, it may have **information leak**.
     * **leakable**
 
 ### strcat
 
-Assume there is another buffer : `char buf2[60]`
+Assume that there is another buffer : `char buf2[60]`
 
 * `strcat(buf, buf2)`
     * Of course, it may cause **overflow** if `length(buf)` isn't large enough.
-    * It will put NULL at the end, it may cause **one-byte-overflow**.
-    * In some case, we can use this NULL byte to change stack address or heap address.
+    * It puts NULL byte at the end, it may cause **one-byte-overflow**.
+    * In some cases, we can use this NULL byte to change stack address or heap address.
     * **pwnable**
 
 * `strncat(buf, buf2, n)`
@@ -115,9 +114,9 @@ Assume there is another buffer : `char buf2[60]`
 
 In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and input buffer.
 
-### Normal gdb
+### gdb
 
-* Use `p/x ((char **)environ)` in gdb, and the address of argv[0] will be the output - 0x10
+* Use `p/x ((char **)environ)` in gdb, and the address of argv[0] will be the `output - 0x10`
 
 Ex:
 
@@ -160,11 +159,11 @@ With specific library in two ways:
 * `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' -kl 127.0.0.1 $port`
 * `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' -kl 127.0.0.1 $port`
 
-After this, you can connect to binary service by command `nc localhost 4000`(I use port number 4000 here.)
+After this, you can connect to binary service by command `nc localhost $port`.
 
 ## Find specific function offset in libc
 
-If we leaked libc address of certain function successfully, we could use it minus offset of that function, then we can get libc base address of this time.
+If we leaked libc address of certain function successfully, we could use get libc base address by minusing the offset of that function.
 
 ### Manually
 
@@ -180,8 +179,7 @@ $ readelf -s libc-2.19.so | grep system@
 
 ### Automatically
 
-* Use [pwntools](https://github.com/Gallopsled/pwntools)
-* Then you can use it in your exploit.
+* Use [pwntools](https://github.com/Gallopsled/pwntools), then you can use it in your exploit script.
 
 Ex:
 
@@ -218,10 +216,12 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 ## Leak stack address
 
-* Already have leaked libc base address
+**constraints**:
+
+* Have already leaked libc base address
 * Can leak the content of arbitrary address
 
-There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp` .
+There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp`.
 The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
 
 ```
@@ -254,6 +254,8 @@ When you use **gdb** to debug a binary with `fork()` function, you can use follo
 * `set follow-fork-mode child`
 
 ## Secret of a mysterious section - .tls
+
+**constraints**:
 
 * Need `malloc` function and you can malloc with arbitrary size
 * Arbitrary address leaking
@@ -327,16 +329,18 @@ addr = LIBC.rand() & 0xfffff000
 
 ## Use one-gadget-RCE instead of system
 
+**constraints**:
+
 * Have libc base address
 * Write to arbitrary address
 
-Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijacking some function to `system`. What if we **can't** manipulate the parameter?
+Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijack some functions to `system`. What if we **can't** manipulate the parameter?
 
 Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
 
-With **one-gadget-RCE**, we can just hijack `.got.plt` to make program jump to **one-gadget**, but there are some constraints needed to be satisfied before use it.
+With **one-gadget-RCE**, we can just hijack `.got.plt` or something we can use to control eip to make program jump to **one-gadget**, but there are some constraints that need satisfying before using it.
 
-There are lots of **one-gadgets** in libc. Each one needs different constraints but those are similar. Each constraint is about registers' state.
+There are lots of **one-gadgets** in libc. Each one has different constraints but those are similar. Each constraint is about the state of registers.
 
 Ex:
 
@@ -345,9 +349,11 @@ Ex:
 
 How can we get these constraints? Here is an useful tool [one_gadget](https://github.com/david942j/one_gadget) !!!!
 
-Therefore, if we can satisfy those constraints, we can get the shell more easily.
+So if we can satisfy those constraints, we can get the shell more easily.
 
 ## Hijack hook function
+
+**constraints**:
 
 * Have libc base address
 * Write to arbitrary address
@@ -357,7 +363,7 @@ By manual:
 
 > The GNU C Library lets you modify the behavior of `malloc`, `realloc`, and `free` by specifying appropriate hook functions. You can use these hooks to help you debug programs that use dynamic memory allocation, for example.
 
-There are hook variables declared in malloc.h, and their default value would be `0x0`.
+There are hook variables declared in malloc.h, and their default value is `0x0`.
 
 * `__malloc_hook`
 * `__free_hook`
@@ -381,7 +387,7 @@ if (__builtin_expect (hook != NULL, 0))
 }
 ```
 
-It will check the value of `__free_hook`. If it's not NULL, it would call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function call is in the libc, the constraint of **one-gadget** is usually satisfied.
+It checks the value of `__free_hook`. If it's not NULL, it will call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function is called in the libc, the constraints of **one-gadget** are usually satisfied.
 
 ## Use printf to trigger malloc and free
 
@@ -453,4 +459,4 @@ More details:
 ### conclusion
 
 * The minimum size of width to trigger `malloc` & `free` is 65537 most of the time.
-* If there is a Format String Vulnerability, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and trigger `malloc` & `free` then we can get the shell easily.
+* If there is a Format String Vulnerability, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and use the trick mentioned above to trigger `malloc` & `free` then we can get the shell easily.
