@@ -459,4 +459,4 @@ More details:
 ### conclusion
 
 * The minimum size of width to trigger `malloc` & `free` is 65537 most of the time.
-* If there is a Format String Vulnerability, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and use the trick mentioned above to trigger `malloc` & `free` then we can get the shell easily.
+* If there is a Format String Vulnerability and the program ends right after calling `printf(buf)`, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and use the trick mentioned above to trigger `malloc` & `free` then we can still get the shell even there is no more function call or sth after `printf(buf)`.
