@@ -20,7 +20,7 @@ CTF-pwn-tips
 
 ## Overflow
 
-Assume that: `char buf[40]` and `int size`
+Assume that: `char buf[40]` and `signed int num`
 
 ### scanf
 
@@ -38,13 +38,14 @@ Assume that: `char buf[40]` and `int size`
     * Therefore, it has **one-byte-overflow**.
     * **pwnable**
 
-* `scanf("%d", size)`
-    * **constraints:**
-        * Used with `alloca(size)`
-        * There is a function call after calling `alloca`
-    * Since `alloca` allocates memory from the stack frame of caller, there is an instruction `sub esp, eax` to achieve that.
-    * If we make size negative, it will have overlapped stack frame.
-    * Ex: [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
+* `scanf("%d", num)`
+    * Used with `alloca(num)`
+        * Since `alloca` allocates memory from the stack frame of caller, there is an instruction `sub esp, eax` to achieve that.
+        * If we make num negative, it will have overlapped stack frame.
+        * Ex: [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
+    * Use num to access some data structures
+        * In most of the time, programs only check the higher bound and forget to make num unsigned.
+        * Making num negative may let us overwrite some important data to control the world!
 
 ### gets
 
