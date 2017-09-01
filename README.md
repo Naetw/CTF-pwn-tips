@@ -29,20 +29,20 @@ Assume that: `char buf[40]` and `signed int num`
     * **pwnable**
 
 * `scanf("%39s", buf)`
-    * `%39s` only takes 39 bytes from input and puts NULL byte at the end of input.
+    * `%39s` only takes 39 bytes from the input and puts NULL byte at the end of input.
     * **useless**
 
 * `scanf("%40s", buf)`
-    * At the first sight, it seems reasonable.(seems)
+    * At first sight, it seems reasonable.(seems)
     * It takes **40 bytes** from input, but it also **puts NULL byte at the end of input.**
     * Therefore, it has **one-byte-overflow**.
     * **pwnable**
 
 * `scanf("%d", num)`
     * Used with `alloca(num)`
-        * Since `alloca` allocates memory from the stack frame of caller, there is an instruction `sub esp, eax` to achieve that.
+        * Since `alloca` allocates memory from the stack frame of the caller, there is an instruction `sub esp, eax` to achieve that.
         * If we make num negative, it will have overlapped stack frame.
-        * Ex: [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
+        * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
     * Use num to access some data structures
         * In most of the time, programs only check the higher bound and forget to make num unsigned.
         * Making num negative may let us overwrite some important data to control the world!
@@ -54,17 +54,17 @@ Assume that: `char buf[40]` and `signed int num`
     * **pwnable**
 
 * `fgets(buf, 40, stdin)`
-    * It takes only **39 bytes** from input, and puts NULL byte at the end of input.
+    * It takes only **39 bytes** from the input and puts NULL byte at the end of input.
     * **useless**
 
 ### read
 
 * `read(stdin, buf, 40)`
-    * It takes **40 bytes** from input, and it doesn't put NULL byte at the end of input.
+    * It takes **40 bytes** from the input, and it doesn't put NULL byte at the end of input.
     * It seems safe, but it may have **information leak**.
     * **leakable**
 
-Example:
+E.g.
 
 **memory layout**
 ```
@@ -82,7 +82,7 @@ Example:
 
 ### strcpy
 
-Assume that there is another buffer : `char buf2[60]`
+Assume that there is another buffer: `char buf2[60]`
 
 * `strcpy(buf, buf2)`
     * No boundary check.
@@ -97,7 +97,7 @@ Assume that there is another buffer : `char buf2[60]`
 
 ### strcat
 
-Assume that there is another buffer : `char buf2[60]`
+Assume that there is another buffer: `char buf2[60]`
 
 * `strcat(buf, buf2)`
     * Of course, it may cause **overflow** if `length(buf)` isn't large enough.
@@ -108,18 +108,18 @@ Assume that there is another buffer : `char buf2[60]`
 * `strncat(buf, buf2, n)`
     * Almost the same as `strcat`, but with size limitation.
     * **pwnable**
-    * Ex: [Seccon CTF quals 2016 jmper](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/jmper-300)
+    * E.g. [Seccon CTF quals 2016 jmper](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/jmper-300)
 
 
 ## Find string in gdb
 
-In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and input buffer.
+In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and the input buffer.
 
 ### gdb
 
 * Use `p/x ((char **)environ)` in gdb, and the address of argv[0] will be the `output - 0x10`
 
-Ex:
+E.g.
 
 ```
 (gdb) p/x (char **)environ
@@ -164,13 +164,13 @@ After this, you can connect to binary service by command `nc localhost $port`.
 
 ## Find specific function offset in libc
 
-If we leaked libc address of certain function successfully, we could use get libc base address by minusing the offset of that function.
+If we leaked libc address of certain function successfully, we could use get libc base address by subtracting the offset of that function.
 
 ### Manually
 
 * `readelf -s $libc | grep ${function}@`
 
-Ex:
+E.g.
 
 ```
 $ readelf -s libc-2.19.so | grep system@
@@ -182,7 +182,7 @@ $ readelf -s libc-2.19.so | grep system@
 
 * Use [pwntools](https://github.com/Gallopsled/pwntools), then you can use it in your exploit script.
 
-Ex:
+E.g.
 
 ```python
 from pwn import *
@@ -204,7 +204,7 @@ Need libc base address first
 
 * Use [pwntools](https://github.com/Gallopsled/pwntools)
 
-Ex:
+E.g.
 
 ```python
 from pwn import *
@@ -249,7 +249,7 @@ This [manual](https://www.gnu.org/software/libc/manual/html_node/Program-Argumen
 
 ## Fork problem in gdb
 
-When you use **gdb** to debug a binary with `fork()` function, you can use following command to determine which process to follow (default is child):
+When you use **gdb** to debug a binary with `fork()` function, you can use the following command to determine which process to follow (default is child):
 
 * `set follow-fork-mode parent`
 * `set follow-fork-mode child`
@@ -263,9 +263,9 @@ When you use **gdb** to debug a binary with `fork()` function, you can use follo
 
 We make `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, these pages will be placed at the address just before `.tls` section.
 
-There are some useful information on **`.tls`**, such as the address of `main_arena`, `canary` (value of stack guard), and a strange `stack address` which points to somewhere on stack but with fixed offset.
+There is some useful information on **`.tls`**, such as the address of `main_arena`, `canary` (value of stack guard), and a strange `stack address` which points to somewhere on the stack but with a fixed offset.
 
-**Before call mmap:**
+**Before calling mmap:**
 
 ```
 7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
@@ -297,7 +297,7 @@ When the binary uses the RNG to make the address of important information or sth
 
 Assuming that it's predictable, we can use [ctypes](https://docs.python.org/2/library/ctypes.html) which is a build-in module in Python.
 
-**ctypes** allows calling function in DLL(Dynamic-Link Library) or Shared Library.
+**ctypes** allows calling a function in DLL(Dynamic-Link Library) or Shared Library.
 
 Therefore, if binary has an init_proc like this:
 
@@ -335,7 +335,7 @@ addr = LIBC.rand() & 0xfffff000
 * Have libc base address
 * Write to arbitrary address
 
-Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijack some functions to `system`. What if we **can't** manipulate the parameter?
+Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of the exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijack some functions to `system`. What if we **can't** manipulate the parameter?
 
 Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
 
@@ -343,7 +343,7 @@ With **one-gadget-RCE**, we can just hijack `.got.plt` or something we can use t
 
 There are lots of **one-gadgets** in libc. Each one has different constraints but those are similar. Each constraint is about the state of registers.
 
-Ex:
+E.g.
 
 * ebx is the address of `rw-p` area of libc
 * [esp+0x34] == NULL
@@ -364,7 +364,7 @@ By manual:
 
 > The GNU C Library lets you modify the behavior of `malloc`, `realloc`, and `free` by specifying appropriate hook functions. You can use these hooks to help you debug programs that use dynamic memory allocation, for example.
 
-There are hook variables declared in malloc.h, and their default value is `0x0`.
+There are hook variables declared in malloc.h and their default values are `0x0`.
 
 * `__malloc_hook`
 * `__free_hook`
