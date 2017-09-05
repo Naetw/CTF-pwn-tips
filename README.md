@@ -16,6 +16,7 @@ CTF-pwn-tips
 * [Use one-gadget-RCE instead of system](#use-one-gadget-rce-instead-of-system)
 * [Hijack hook function](#hijack-hook-function)
 * [Use printf to trigger malloc and free](#use-printf-to-trigger-malloc-and-free)
+* [Use execveat to open a shell](#use-execveat-to-open-a-shell)
 
 
 ## Overflow
@@ -461,3 +462,20 @@ More details:
 
 * The minimum size of width to trigger `malloc` & `free` is 65537 most of the time.
 * If there is a Format String Vulnerability and the program ends right after calling `printf(buf)`, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and use the trick mentioned above to trigger `malloc` & `free` then we can still get the shell even there is no more function call or sth after `printf(buf)`.
+
+## Use execveat to open a shell
+
+When it comes to opening a shell with system call, `execve` always pops up in mind. However, it's not always easily available due to the lack of gadgets or others constraints.  
+Actually, there is a system call, `execveat`, with following prototype:
+
+```c
+int execveat(int dirfd, const char *pathname,
+             char *const argv[], char *const envp[],
+             int flags);
+```
+
+According to its [man page](http://man7.org/linux/man-pages/man2/execveat.2.html), it operates in the same way as `execve`. As for the additional arguments, it mentions that:
+
+> If pathname is absolute, then dirfd is ignored.
+
+Hence, if we make `pathname` point to `"/bin/sh"`, and set `argv`, `envp` and `flags` to 0, we can still get a shell whatever the value of `dirfd`.
