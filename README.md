@@ -250,7 +250,7 @@ This [manual](https://www.gnu.org/software/libc/manual/html_node/Program-Argumen
 
 ## Fork problem in gdb
 
-When you use **gdb** to debug a binary with `fork()` function, you can use the following command to determine which process to follow (default is child):
+When you use **gdb** to debug a binary with `fork()` function, you can use the following command to determine which process to follow (The default setting of original gdb is parent, while that of gdb-peda is child.):
 
 * `set follow-fork-mode parent`
 * `set follow-fork-mode child`
