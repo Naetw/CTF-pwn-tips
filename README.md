@@ -255,6 +255,8 @@ When you use **gdb** to debug a binary with `fork()` function, you can use the f
 * `set follow-fork-mode parent`
 * `set follow-fork-mode child`
 
+Alternatively, using `set detach-on-fork off`, we can then control both sides of each fork. Using `inferior X` where `X` is any of the numbers that show up for `info inferiors` will switch to that side of the fork. This is useful if both sides of the fork are necessary to attack a challenge, and the simple `follow` ones above aren't sufficient.
+
 ## Secret of a mysterious section - .tls
 
 **constraints**:
