@@ -77,7 +77,7 @@ E.g.
 * If there is a `printf` or `puts` used to output the buf, it will keep outputting until reaching NULL byte.
 * In this case, we can get `'A'*40 + '\xcd\xe1\xff\xff\xff\x7f'`.
 
-* `fread(stdin, buf, 1, 40)`
+* `fread(buf, 1, 40, stdin)`
     * Almost the same as `read`.
     * **leakable**
 
