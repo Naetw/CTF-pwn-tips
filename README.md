@@ -91,7 +91,7 @@ Assume that there is another buffer: `char buf2[60]`
     * Therefore, it may happen overflow.
     * **pwnable**
 
-* `strncpy(buf, buf2, 40)`
+* `strncpy(buf, buf2, 40)` && `memcpy(buf, buf2, 40)`
     * It copies 40 bytes from buf2 to buf, but it won't put NULL byte at the end.
     * Since there is no NULL byte to terminate, it may have **information leak**.
     * **leakable**
