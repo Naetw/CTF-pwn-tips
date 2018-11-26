@@ -39,7 +39,7 @@ Assume that: `char buf[40]` and `signed int num`
     * Therefore, it has **one-byte-overflow**.
     * **pwnable**
 
-* `scanf("%d", num)`
+* `scanf("%d", &num)`
     * Used with `alloca(num)`
         * Since `alloca` allocates memory from the stack frame of the caller, there is an instruction `sub esp, eax` to achieve that.
         * If we make num negative, it will have overlapped stack frame.
