@@ -7,6 +7,7 @@ CTF-pwn-tips
 * [Find string in gdb](#find-string-in-gdb)
 * [Binary Service](#binary-service)
 * [Find specific function offset in libc](#find-specific-function-offset-in-libc)
+* [Redressing a stripped libc](#redressing-a-stripped-libc)
 * [Find '/bin/sh' or 'sh' in library](#find-binsh-or-sh-in-library)
 * [Leak stack address](#leak-stack-address)
 * [Fork problem in gdb](#fork-problem-in-gdb)
@@ -191,6 +192,15 @@ from pwn import *
 libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
+
+## Redressing a stripped libc
+
+Often times when we do pwnables, we are given the pwnable along with a stripped version of the libc that the pwnable is using on the remote server. If we want an easier time debugging with the provided libc preloaded, here are some steps we can take to add symbols back to the stripped libc. (dependencies: [eu-unstrip](https://helpmanual.io/help/eu-unstrip/))
+
+1. run `strings <stripped-libc> | grep glibc` to determine the libc version
+2. download the associated debug symbol file (eg.https://launchpad.net/ubuntu/xenial/amd64/libc6-dbg/2.23-0ubuntu5)
+3. merge stripped libc file with debug symbol file using `eu-unstrip` like so: `eu-unstrip <stripped-libc> <symbol-file>`
+4. now `<symbol-file>` will be your newly redressed libc w/symbols!
 
 ## Find '/bin/sh' or 'sh' in library
 
